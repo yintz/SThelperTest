@@ -31,3 +31,9 @@ remotes::install_github("yintz/SThelper")
 
 `SThelper` is an R package that collects useful tools for Spatially Resolved Transcriptomics data analysis and visualization.
 
+
+# Study Data
+
+If you need the ST data, this is the data we used. 
+[MendeleyRepository](https://data.mendeley.com/v1/datasets/svw96g68dv/draft?a=3f263217-2bd3-4a3c-8125-8c517c3a9e29).
+for more ST data, you can also go to 10X website to download.
