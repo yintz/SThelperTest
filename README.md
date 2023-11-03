@@ -6,3 +6,7 @@ I aim to updated every month.
 if there is anything you need, please feel free to contact me
 
 
+install.packages("remotes")
+remotes::install_github("yintz/SThelper")
+
+
