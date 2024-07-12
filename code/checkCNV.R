@@ -123,7 +123,7 @@ checkCNV <- function(SPACEmapX_obj,
   leiden_function_per_chr = match.arg(leiden_function_per_chr)
   HMM_report_by = match.arg(HMM_report_by)
   analysis_mode = match.arg(analysis_mode)
-  if(analysis_mode == "Spots" && HMM_report_by != "Spot") {
+  if(analysis_mode == "spots" && HMM_report_by != "Spot") {
     flog.warn(paste0("analysis_mode is \"spots\" but HMM_report_by is not, "),
               "changing HMM_report_by to \"spots\".")
     HMM_report_by = "spot"
