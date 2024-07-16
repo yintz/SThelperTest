@@ -14,7 +14,7 @@ get_group_color_palette <- function(){
 #'
 #' @title Plot the matrix as a heatmap, with cells as rows and genes as columns, ordered according to chromosome
 #'
-#' @param infercnv_obj infercnv object
+#' @param SPACEmapX_obj SPACEmapX object
 #' @param out_dir Directory in which to save pdf and other output.
 #' @param title Plot title.
 #' @param obs_title Title for the observations matrix.
@@ -50,16 +50,16 @@ get_group_color_palette <- function(){
 #' @export
 #'
 #' @examples
-#' # data(infercnv_data_example)
-#' # data(infercnv_annots_example)
-#' # data(infercnv_genes_example)
+#' # data(SPACEmapX_data_example)
+#' # data(SPACEmapX_annots_example)
+#' # data(SPACEmapX_genes_example)
 #'
-#' # infercnv_object_example <- infercnv::CreateInfercnvObject(raw_counts_matrix=infercnv_data_example, 
-#' #                                                           gene_order_file=infercnv_genes_example,
-#' #                                                           annotations_file=infercnv_annots_example,
+#' # SPACEmapX_object_example <- SPACEmapX::CreateSPACEmapXObject(raw_counts_matrix=SPACEmapX_data_example, 
+#' #                                                           gene_order_file=SPACEmapX_genes_example,
+#' #                                                           annotations_file=SPACEmapX_annots_example,
 #' #                                                           ref_group_names=c("normal"))
 #'
-#' # infercnv_object_example <- infercnv::run(infercnv_object_example,
+#' # SPACEmapX_object_example <- SPACEmapX::run(SPACEmapX_object_example,
 #' #                                          cutoff=1,
 #' #                                          out_dir=tempfile(), 
 #' #                                          cluster_by_groups=TRUE, 
@@ -68,9 +68,9 @@ get_group_color_palette <- function(){
 #' #                                          num_threads=2,
 #' #                                          no_plot=TRUE)
 #'
-#' data(infercnv_object_example)
+#' data(SPACEmapX_object_example)
 #'
-#' plot_cnv(infercnv_object_example,
+#' plot_cnv(SPACEmapX_object_example,
 #'          out_dir=tempfile(),
 #'          obs_title="Observations (Cells)",
 #'          ref_title="References (Cells)",
@@ -79,7 +79,7 @@ get_group_color_palette <- function(){
 #'          x.range="auto",
 #'          hclust_method='ward.D',
 #'          color_safe_pal=FALSE,
-#'          output_filename="infercnv",
+#'          output_filename="SPACEmapX",
 #'          output_format="png",
 #'          png_res=300,
 #'          dynamic_resize=0
@@ -87,9 +87,9 @@ get_group_color_palette <- function(){
 #'
 
 
-plot_cnv <- function(infercnv_obj,
+plot_cnv <- function(SPACEmapX_obj,
                      out_dir=".",
-                     title="inferCNV",
+                     title="SPACEmapX",
                      obs_title="Observations (Cells)",
                      ref_title="References (Cells)",
                      cluster_by_groups=TRUE,
@@ -98,12 +98,12 @@ plot_cnv <- function(infercnv_obj,
                      chr_lengths=NULL,
                      k_obs_groups = 1,
                      contig_cex=1,
-                     x.center=mean(infercnv_obj@expr.data),
+                     x.center=mean(SPACEmapX_obj@expr.data),
                      x.range="auto", #NA,
                      hclust_method='ward.D',
                      custom_color_pal=NULL,
                      color_safe_pal=FALSE,
-                     output_filename="infercnv",
+                     output_filename="SPACEmapX",
                      output_format="png", #pdf, png, NA
                      png_res=300,
                      dynamic_resize=0,
@@ -125,7 +125,7 @@ plot_cnv <- function(infercnv_obj,
         dir.create(out_dir)
     }
     
-    plot_data = infercnv_obj@expr.data
+    plot_data = SPACEmapX_obj@expr.data
     
     flog.info(paste("::plot_cnv:Start", sep=""))
     flog.info(paste("::plot_cnv:Current data dimensions (r,c)=",
@@ -180,13 +180,13 @@ plot_cnv <- function(infercnv_obj,
         plot_data[plot_data < low_threshold] <- low_threshold
         plot_data[plot_data > high_threshold] <- high_threshold
         
-        infercnv_obj@expr.data <- plot_data  #because used again below...
+        SPACEmapX_obj@expr.data <- plot_data  #because used again below...
         
     }
     
     
     # Contigs
-    contigs = infercnv_obj@gene_order[[C_CHR]]
+    contigs = SPACEmapX_obj@gene_order[[C_CHR]]
     unique_contigs <- unique(contigs)
     n_contig <- length(unique_contigs)
     ct.colors <- get_group_color_palette()(n_contig)
@@ -206,8 +206,8 @@ plot_cnv <- function(infercnv_obj,
     
     ## Row separation based on reference
     ref_idx <- NULL
-    if (has_reference_cells(infercnv_obj)) {
-        ref_idx <- unlist(infercnv_obj@reference_grouped_cell_indices)
+    if (has_reference_cells(SPACEmapX_obj)) {
+        ref_idx <- unlist(SPACEmapX_obj@reference_grouped_cell_indices)
         ref_idx = ref_idx[order(ref_idx)]
     }
     
@@ -233,13 +233,13 @@ plot_cnv <- function(infercnv_obj,
 
     # Calculate how many rows will be made for the number of columns in the grouping key
     grouping_key_coln <- c()
-    obs_annotations_names <- names(infercnv_obj@observation_grouped_cell_indices)
+    obs_annotations_names <- names(SPACEmapX_obj@observation_grouped_cell_indices)
 
     
     # obs_annotations_groups: integer vec named by cells, set to index according to category name vec above.
-    obs_annotations_groups = rep(-1, length(colnames(infercnv_obj@expr.data))) # init
-    names(obs_annotations_groups) = colnames(infercnv_obj@expr.data)
-    obs_index_groupings = infercnv_obj@observation_grouped_cell_indices
+    obs_annotations_groups = rep(-1, length(colnames(SPACEmapX_obj@expr.data))) # init
+    names(obs_annotations_groups) = colnames(SPACEmapX_obj@expr.data)
+    obs_index_groupings = SPACEmapX_obj@observation_grouped_cell_indices
     counter <- 1
     for (obs_index_group in obs_index_groupings) {
         obs_annotations_groups[ obs_index_group ] <- counter
@@ -256,7 +256,7 @@ plot_cnv <- function(infercnv_obj,
         dynamic_resize = 0
     }
     dynamic_extension = 0
-    nobs = length(unlist(infercnv_obj@observation_grouped_cell_indices))
+    nobs = length(unlist(SPACEmapX_obj@observation_grouped_cell_indices))
     if (nobs > 200) {
         dynamic_extension = dynamic_resize * 3.6 * (nobs - 200)/200 
     }
@@ -266,7 +266,7 @@ plot_cnv <- function(infercnv_obj,
         grouping_key_coln[1] <- 1
     }
 
-    name_ref_groups = names(infercnv_obj@reference_grouped_cell_indices)
+    name_ref_groups = names(SPACEmapX_obj@reference_grouped_cell_indices)
     if (is.null(name_ref_groups)) {
         grouping_key_coln[2] = 1
     } else {
@@ -311,7 +311,7 @@ plot_cnv <- function(infercnv_obj,
     ## Remove observation col names, too many to plot
     ## Will try and keep the reference names
     ## They are more informative anyway
-    obs_data <- infercnv_obj@expr.data
+    obs_data <- SPACEmapX_obj@expr.data
     if (!is.null(ref_idx)){
         obs_data <- plot_data[, -ref_idx, drop=FALSE]
         if (ncol(obs_data) == 1) {
@@ -329,8 +329,8 @@ plot_cnv <- function(infercnv_obj,
     updated_ref_groups <- list()
     current_ref_count <- 1
     current_grp_idx <- 1
-    plot_data <-infercnv_obj@expr.data
-    ref_groups = infercnv_obj@reference_grouped_cell_indices
+    plot_data <-SPACEmapX_obj@expr.data
+    ref_groups = SPACEmapX_obj@reference_grouped_cell_indices
     for (ref_grp in ref_groups) {
         ref_data_t <- cbind(ref_data_t, plot_data[, ref_grp, drop=FALSE])
         updated_ref_groups[[current_grp_idx]] = seq(current_ref_count, current_ref_count + length(ref_grp) - 1)
@@ -350,7 +350,7 @@ plot_cnv <- function(infercnv_obj,
     gene_position_breaks = NULL
     if (plot_chr_scale) {
         # gene table to heatmap width
-        chr_name_list = unique(infercnv_obj@gene_order[["chr"]])
+        chr_name_list = unique(SPACEmapX_obj@gene_order[["chr"]])
         
         # get average distance for tail end? 
         # optionally give vector of chr lengths
@@ -358,11 +358,11 @@ plot_cnv <- function(infercnv_obj,
         if (is.null(chr_lengths)) {
             chr_lengths = c()
             for (chr_name in chr_name_list) {
-                chr_lengths = c(chr_lengths, max(infercnv_obj@gene_order$stop[which(infercnv_obj@gene_order$chr == chr_name)]) + 10000)
+                chr_lengths = c(chr_lengths, max(SPACEmapX_obj@gene_order$stop[which(SPACEmapX_obj@gene_order$chr == chr_name)]) + 10000)
             }
             names(chr_lengths) = chr_name_list
         }
-        gene_position_breaks = vector(mode="integer", length=(length(unlist(infercnv_obj@gene_order$chr)) + 1))
+        gene_position_breaks = vector(mode="integer", length=(length(unlist(SPACEmapX_obj@gene_order$chr)) + 1))
 
         sum_previous_contigs = 0
         gene_position_breaks[1] = 1
@@ -370,12 +370,12 @@ plot_cnv <- function(infercnv_obj,
         col_sep_idx = 1
 
         for (chr_name in chr_name_list) {
-            index_pos = which(infercnv_obj@gene_order$chr == chr_name)
+            index_pos = which(SPACEmapX_obj@gene_order$chr == chr_name)
             latest_position = 1
             if (length(index_pos) > 1) {
                 for (i in index_pos[2:length(index_pos)]) {
-                    gene_position_breaks[current_idx] = sum_previous_contigs + ((latest_position + infercnv_obj@gene_order$start[i]) / 2)
-                    latest_position = max(infercnv_obj@gene_order$stop[i], latest_position)
+                    gene_position_breaks[current_idx] = sum_previous_contigs + ((latest_position + SPACEmapX_obj@gene_order$start[i]) / 2)
+                    latest_position = max(SPACEmapX_obj@gene_order$stop[i], latest_position)
                     current_idx = current_idx + 1
                 }
             }
@@ -399,7 +399,7 @@ plot_cnv <- function(infercnv_obj,
 
     # Create file base for plotting output
     force_layout <- .plot_observations_layout(grouping_key_height=grouping_key_height, dynamic_extension=dynamic_extension)
-    .plot_cnv_observations(infercnv_obj=infercnv_obj,
+    .plot_cnv_observations(SPACEmapX_obj=SPACEmapX_obj,
                           obs_data=obs_data,
                           file_base_name=out_dir,
                           do_plot=!is.na(output_format),
@@ -432,7 +432,7 @@ plot_cnv <- function(infercnv_obj,
     obs_data <- NULL
 
     if(!is.null(ref_idx)){
-        .plot_cnv_references(infercnv_obj=infercnv_obj,
+        .plot_cnv_references(SPACEmapX_obj=SPACEmapX_obj,
                             ref_data=ref_data_t,
                             ref_groups=ref_groups,
                             name_ref_groups=name_ref_groups,
@@ -502,7 +502,7 @@ plot_cnv <- function(infercnv_obj,
 #' @noRd
 #'
 
-.plot_cnv_observations <- function(infercnv_obj,
+.plot_cnv_observations <- function(SPACEmapX_obj,
                                   obs_data,
                                   col_pal,
                                   contig_colors,
@@ -557,7 +557,7 @@ plot_cnv <- function(infercnv_obj,
             hcl_group_indices <- hcl_contig_indices
             hcl_desc <- paste(cluster_contig, collapse="_")
             flog.info(paste("plot_cnv_observation:Clustering only by contig ", cluster_contig))
-            infercnv_obj@tumor_subclusters = NULL # so that clustering is calculated based on selected contigs only without requiring the user to manually erase this field
+            SPACEmapX_obj@tumor_subclusters = NULL # so that clustering is calculated based on selected contigs only without requiring the user to manually erase this field
         } else {
             flog.warn(paste("plot_cnv_observations: Not able to cluster by",
                                      cluster_contig,
@@ -577,50 +577,50 @@ plot_cnv <- function(infercnv_obj,
     obs_seps <- c()
     sub_obs_seps <- c()  # never use at this time? available if we want to add splits in the heatmap for subclusters
 
-    if (!is.null(infercnv_obj@tumor_subclusters)) {
+    if (!is.null(SPACEmapX_obj@tumor_subclusters)) {
         if (cluster_by_groups) {
             # for (i in seq(1, max(obs_annotations_groups))) {
             split_groups = vector()
             for (i in seq_along(obs_annotations_names)) {
-                if (!is.null(infercnv_obj@tumor_subclusters$hc[[ obs_annotations_names[i] ]])) {
+                if (!is.null(SPACEmapX_obj@tumor_subclusters$hc[[ obs_annotations_names[i] ]])) {
 
-                    obs_dendrogram[[i]] = as.dendrogram(infercnv_obj@tumor_subclusters$hc[[ obs_annotations_names[i] ]])
-                    ordered_names <- c(ordered_names, infercnv_obj@tumor_subclusters$hc[[ obs_annotations_names[i] ]]$labels[infercnv_obj@tumor_subclusters$hc[[ obs_annotations_names[i] ]]$order])
+                    obs_dendrogram[[i]] = as.dendrogram(SPACEmapX_obj@tumor_subclusters$hc[[ obs_annotations_names[i] ]])
+                    ordered_names <- c(ordered_names, SPACEmapX_obj@tumor_subclusters$hc[[ obs_annotations_names[i] ]]$labels[SPACEmapX_obj@tumor_subclusters$hc[[ obs_annotations_names[i] ]]$order])
                     obs_seps <- c(obs_seps, length(ordered_names))
-                    hcl_obs_annotations_groups <- c(hcl_obs_annotations_groups, rep(i, length(infercnv_obj@tumor_subclusters$hc[[ obs_annotations_names[i] ]]$order)))
+                    hcl_obs_annotations_groups <- c(hcl_obs_annotations_groups, rep(i, length(SPACEmapX_obj@tumor_subclusters$hc[[ obs_annotations_names[i] ]]$order)))
                     
                     if (write_phylo) {
                         if (isfirst) {
-                            write.tree(as.phylo(infercnv_obj@tumor_subclusters$hc[[ obs_annotations_names[i] ]]),
+                            write.tree(as.phylo(SPACEmapX_obj@tumor_subclusters$hc[[ obs_annotations_names[i] ]]),
                                        file=dendrogram_file_path)
                             isfirst <- FALSE
                         }
                         else {
-                            write.tree(as.phylo(infercnv_obj@tumor_subclusters$hc[[ obs_annotations_names[i] ]]),
+                            write.tree(as.phylo(SPACEmapX_obj@tumor_subclusters$hc[[ obs_annotations_names[i] ]]),
                                        file=dendrogram_file_path, append=TRUE)
                         }
                     }
                 }
                 else { ## should only happen if there is only 1 cell in the group so the clustering method was not able to generate a hclust
                     #### actually happens with 2 cells only too, because can't cluster 2
-                    if ((length(unlist(infercnv_obj@tumor_subclusters$subclusters[[obs_annotations_names[i]]])) == 2) || (length(unlist(infercnv_obj@tumor_subclusters$subclusters[[obs_annotations_names[i]]])) == 1)) {
-                        if (length(unlist(infercnv_obj@tumor_subclusters$subclusters[[obs_annotations_names[i]]])) == 2) {
-                            obs_dendrogram[[i]] <- .pairwise_dendrogram(colnames(infercnv_obj@expr.data[, unlist(infercnv_obj@tumor_subclusters$subclusters[[obs_annotations_names[i]]]), drop=FALSE]))
+                    if ((length(unlist(SPACEmapX_obj@tumor_subclusters$subclusters[[obs_annotations_names[i]]])) == 2) || (length(unlist(SPACEmapX_obj@tumor_subclusters$subclusters[[obs_annotations_names[i]]])) == 1)) {
+                        if (length(unlist(SPACEmapX_obj@tumor_subclusters$subclusters[[obs_annotations_names[i]]])) == 2) {
+                            obs_dendrogram[[i]] <- .pairwise_dendrogram(colnames(SPACEmapX_obj@expr.data[, unlist(SPACEmapX_obj@tumor_subclusters$subclusters[[obs_annotations_names[i]]]), drop=FALSE]))
                         }
                         else { ## == 1
-                            obs_dendrogram[[i]] <- .single_element_dendrogram(colnames(infercnv_obj@expr.data[, unlist(infercnv_obj@tumor_subclusters$subclusters[[obs_annotations_names[i]]]), drop=FALSE]))
+                            obs_dendrogram[[i]] <- .single_element_dendrogram(colnames(SPACEmapX_obj@expr.data[, unlist(SPACEmapX_obj@tumor_subclusters$subclusters[[obs_annotations_names[i]]]), drop=FALSE]))
                         }
-                        ordered_names <- c(ordered_names, colnames(infercnv_obj@expr.data[, unlist(infercnv_obj@tumor_subclusters$subclusters[[obs_annotations_names[i]]]), drop=FALSE]))
+                        ordered_names <- c(ordered_names, colnames(SPACEmapX_obj@expr.data[, unlist(SPACEmapX_obj@tumor_subclusters$subclusters[[obs_annotations_names[i]]]), drop=FALSE]))
                         obs_seps <- c(obs_seps, length(ordered_names))
-                        hcl_obs_annotations_groups <- c(hcl_obs_annotations_groups, rep(i, length(unlist(infercnv_obj@tumor_subclusters$subclusters[[obs_annotations_names[i]]]))))
+                        hcl_obs_annotations_groups <- c(hcl_obs_annotations_groups, rep(i, length(unlist(SPACEmapX_obj@tumor_subclusters$subclusters[[obs_annotations_names[i]]]))))
                     }
                     else {
                         flog.error("Unexpected error, should not happen.")
                         stop("Error")
                     }
                 }
-                for (subcluster in names(infercnv_obj@tumor_subclusters$subclusters[[ obs_annotations_names[i] ]])) {
-                    tmp = infercnv_obj@tumor_subclusters$subclusters[[ obs_annotations_names[i] ]][[subcluster]]
+                for (subcluster in names(SPACEmapX_obj@tumor_subclusters$subclusters[[ obs_annotations_names[i] ]])) {
+                    tmp = SPACEmapX_obj@tumor_subclusters$subclusters[[ obs_annotations_names[i] ]][[subcluster]]
                     tmp[] = subcluster
                     split_groups = c(split_groups, tmp)
                 }
@@ -634,12 +634,12 @@ plot_cnv <- function(infercnv_obj,
             # split_groups <- rep(1, dim(obs_data)[1])
             # names(split_groups) <- ordered_names
             
-            for(subtumor in infercnv_obj@tumor_subclusters$subclusters[[ obs_annotations_names[i] ]]) {
+            for(subtumor in SPACEmapX_obj@tumor_subclusters$subclusters[[ obs_annotations_names[i] ]]) {
                 sub_obs_seps <- c(sub_obs_seps, (sub_obs_seps[length(sub_obs_seps)] + length(subtumor)))
             }
         }
         else {
-            obs_hcl <- infercnv_obj@tumor_subclusters$hc[["all_observations"]]
+            obs_hcl <- SPACEmapX_obj@tumor_subclusters$hc[["all_observations"]]
             if (write_phylo) {
                 write.tree(as.phylo(obs_hcl),
                     file=dendrogram_file_path)
@@ -651,8 +651,8 @@ plot_cnv <- function(infercnv_obj,
             }
             else {
                 split_groups = vector()
-                for (subcluster in names(infercnv_obj@tumor_subclusters$subclusters[["all_observations"]])) {
-                    tmp = infercnv_obj@tumor_subclusters$subclusters[["all_observations"]][[subcluster]]
+                for (subcluster in names(SPACEmapX_obj@tumor_subclusters$subclusters[["all_observations"]])) {
+                    tmp = SPACEmapX_obj@tumor_subclusters$subclusters[["all_observations"]][[subcluster]]
                     tmp[] = subcluster
                     split_groups = c(split_groups, tmp)
                 }
@@ -715,7 +715,7 @@ plot_cnv <- function(infercnv_obj,
             else {
                 data_to_cluster <- obs_data[cell_indices_in_group, hcl_group_indices, drop=FALSE]
                 flog.info(paste("group size being clustered: ", paste(dim(data_to_cluster), collapse=","), sep=" "))
-                group_obs_hcl <- hclust(parallelDist(data_to_cluster, threads=infercnv.env$GLOBAL_NUM_THREADS), method=hclust_method)
+                group_obs_hcl <- hclust(parallelDist(data_to_cluster, threads=SPACEmapX.env$GLOBAL_NUM_THREADS), method=hclust_method)
                 ordered_names <- c(ordered_names, group_obs_hcl$labels[group_obs_hcl$order])
                 group_obs_dend <- as.dendrogram(group_obs_hcl)
                 obs_dendrogram[[length(obs_dendrogram) + 1]] <- group_obs_dend
@@ -751,7 +751,7 @@ plot_cnv <- function(infercnv_obj,
         # HCL with a inversely weighted euclidean distance.
         flog.info(paste("clustering observations via method: ", hclust_method, sep=""))
         if (nrow(obs_data) > 1) {
-            obs_hcl <- hclust(parallelDist(obs_data[, hcl_group_indices], threads=infercnv.env$GLOBAL_NUM_THREADS), method=hclust_method)
+            obs_hcl <- hclust(parallelDist(obs_data[, hcl_group_indices], threads=SPACEmapX.env$GLOBAL_NUM_THREADS), method=hclust_method)
             
             if (write_phylo) {
                 write.tree(as.phylo(obs_hcl),
@@ -960,7 +960,7 @@ plot_cnv <- function(infercnv_obj,
 # Plot the reference samples
 #
 #' Args:
-#' infercnv_obj: infercnv obj to access the subclusters information
+#' SPACEmapX_obj: SPACEmapX obj to access the subclusters information
 #' ref_data Data to plot as references. Rows = Cells, Col = Genes
 #' ref_groups Groups of references to plot together.
 #' col_pal The color palette to use.
@@ -981,7 +981,7 @@ plot_cnv <- function(infercnv_obj,
 #' @keywords internal
 #' @noRd
 #'
-.plot_cnv_references <- function(infercnv_obj,
+.plot_cnv_references <- function(SPACEmapX_obj,
                                 ref_data,
                                 ref_groups,
                                 name_ref_groups,
@@ -1023,26 +1023,26 @@ plot_cnv <- function(infercnv_obj,
     # order so the current groups are shown and seperated.
 
     ordered_names <- c()
-    if (!is.null(infercnv_obj@tumor_subclusters$hc[["all_references"]])) {  # this allows runs made with some versions of infercnv to be plotted, but shouldn't be happening anymore
-        ordered_names <- infercnv_obj@tumor_subclusters$hc[["all_references"]]$labels[infercnv_obj@tumor_subclusters$hc[["all_references"]]$order]
+    if (!is.null(SPACEmapX_obj@tumor_subclusters$hc[["all_references"]])) {  # this allows runs made with some versions of SPACEmapX to be plotted, but shouldn't be happening anymore
+        ordered_names <- SPACEmapX_obj@tumor_subclusters$hc[["all_references"]]$labels[SPACEmapX_obj@tumor_subclusters$hc[["all_references"]]$order]
         split_groups <- rep(1, length(ordered_names))
         ref_data <- ref_data[, ordered_names, drop=FALSE]
     }
-    else if (all(name_ref_groups %in% infercnv_obj@tumor_subclusters$subclusters)) { 
+    else if (all(name_ref_groups %in% SPACEmapX_obj@tumor_subclusters$subclusters)) { 
         if (cluster_references) {
             split_groups <- c()
             for (i in seq_along(name_ref_groups)) {
-                if (!is.null(infercnv_obj@tumor_subclusters$hc[[ name_ref_groups[i] ]])) {
-                    ordered_names <- c(ordered_names, infercnv_obj@tumor_subclusters$hc[[ name_ref_groups[i] ]]$labels[infercnv_obj@tumor_subclusters$hc[[ name_ref_groups[i] ]]$order])
+                if (!is.null(SPACEmapX_obj@tumor_subclusters$hc[[ name_ref_groups[i] ]])) {
+                    ordered_names <- c(ordered_names, SPACEmapX_obj@tumor_subclusters$hc[[ name_ref_groups[i] ]]$labels[SPACEmapX_obj@tumor_subclusters$hc[[ name_ref_groups[i] ]]$order])
                     ref_seps <- c(ref_seps, length(ordered_names))
-                    split_groups <- c(split_groups, rep(i, length(infercnv_obj@tumor_subclusters$hc[[ name_ref_groups[i] ]]$order)))
+                    split_groups <- c(split_groups, rep(i, length(SPACEmapX_obj@tumor_subclusters$hc[[ name_ref_groups[i] ]]$order)))
                 }
                 else {  ## should only happen if there is only 1 cell in the group so the clustering method was not able to generate a hclust
                     #### actually happens with 2 cells only too, because can't cluster 2
-                    if ((length(unlist(infercnv_obj@tumor_subclusters$subclusters[[name_ref_groups[i]]])) == 2) || (length(unlist(infercnv_obj@tumor_subclusters$subclusters[[name_ref_groups[i]]])) == 1)) {
-                        ordered_names <- c(ordered_names, colnames(infercnv_obj@expr.data[, unlist(infercnv_obj@tumor_subclusters$subclusters[[ name_ref_groups[i] ]]), drop=FALSE]))
+                    if ((length(unlist(SPACEmapX_obj@tumor_subclusters$subclusters[[name_ref_groups[i]]])) == 2) || (length(unlist(SPACEmapX_obj@tumor_subclusters$subclusters[[name_ref_groups[i]]])) == 1)) {
+                        ordered_names <- c(ordered_names, colnames(SPACEmapX_obj@expr.data[, unlist(SPACEmapX_obj@tumor_subclusters$subclusters[[ name_ref_groups[i] ]]), drop=FALSE]))
                         ref_seps <- c(ref_seps, length(ordered_names))
-                        split_groups <- c(split_groups, rep(i, length(length(unlist(infercnv_obj@tumor_subclusters$subclusters[[name_ref_groups[i]]])))))
+                        split_groups <- c(split_groups, rep(i, length(length(unlist(SPACEmapX_obj@tumor_subclusters$subclusters[[name_ref_groups[i]]])))))
                     }
                     else {
                         flog.error("Unexpected error, should not happen.")
@@ -1058,7 +1058,7 @@ plot_cnv <- function(infercnv_obj,
             if (cluster_references) {
                 order_idx <- lapply(ref_groups, function(ref_grp) {
                     if (cluster_references && length(ref_grp) > 2) {
-                        ref_hcl <- hclust(parallelDist(t(ref_data[, ref_grp]), threads=infercnv.env$GLOBAL_NUM_THREADS), method=hclust_method)
+                        ref_hcl <- hclust(parallelDist(t(ref_data[, ref_grp]), threads=SPACEmapX.env$GLOBAL_NUM_THREADS), method=hclust_method)
                         ref_grp <- ref_grp[ref_hcl$order]
                     }
                     ref_grp
@@ -1075,7 +1075,7 @@ plot_cnv <- function(infercnv_obj,
         }
         else {
             if (cluster_references) {
-                ref_hcl <- hclust(parallelDist(t(ref_data), threads=infercnv.env$GLOBAL_NUM_THREADS), method=hclust_method)  # all ref_data is part of the only group
+                ref_hcl <- hclust(parallelDist(t(ref_data), threads=SPACEmapX.env$GLOBAL_NUM_THREADS), method=hclust_method)  # all ref_data is part of the only group
                 # order_idx <- unlist(ref_groups)[ref_hcl$order]
                 order_idx = ref_hcl$order # ref_data has been reindexed beforehand in the calling method
             }
@@ -1111,7 +1111,7 @@ plot_cnv <- function(infercnv_obj,
     # if (cluster_references) {
     #   if (number_references > 1) {
     #       for (i in seq_len(length(ref_groups))) {
-    #           ref_hcl <- hclust(parallelDist(ref_data[ref_groups[[i]], ], threads=infercnv.env$GLOBAL_NUM_THREADS), method=hclust_method)
+    #           ref_hcl <- hclust(parallelDist(ref_data[ref_groups[[i]], ], threads=SPACEmapX.env$GLOBAL_NUM_THREADS), method=hclust_method)
     #           ref_data[ref_groups[[i]], ] <- ref_data[ref_groups[[i]][ref_hcl$order], , drop=FALSE]
     #       }
     #   }
@@ -1879,7 +1879,7 @@ heatmap.cnv <-
     if(.invalid(breaks)) {
         breaks <- 16
     } else {
-        flog.debug(paste("inferCNV::heatmap.cnv, breaks parameter set to: [", paste(breaks, collapse=","), "]", sep=""))
+        flog.debug(paste("SPACEmapX::heatmap.cnv, breaks parameter set to: [", paste(breaks, collapse=","), "]", sep=""))
     }
 
     ## get x.range according to the value of x.center ##
@@ -1895,7 +1895,7 @@ heatmap.cnv <-
             if (length(breaks) > 1) {
                 # re-set the breaks according to the new x.range
                 breaks=seq(x.range[1], x.range[2], length=16)
-                flog.debug(paste("inferCNV::heatmap.cnv, resetting breaks to adjusted x.range: [",
+                flog.debug(paste("SPACEmapX::heatmap.cnv, resetting breaks to adjusted x.range: [",
                                                          paste(breaks, collapse=","), "]", sep=""))
             }
 
@@ -1910,7 +1910,7 @@ heatmap.cnv <-
         }
     }
 
-    flog.debug( paste("inferCNV::heatmap.cnv x range set to: ",
+    flog.debug( paste("SPACEmapX::heatmap.cnv x range set to: ",
                         paste(x.range, collapse=",")), sep="" )
 
     ## set breaks for centering colors to the value of x.center ##
@@ -2487,9 +2487,9 @@ heatmap.cnv <-
   
             par(mar=c(2,1.5,0.75,1)*keysize,cex=cex.key,mgp=c(0.75,0,0),tcl=-0.05)
             z <- seq(x.range[1],x.range[2],length=length(colors))
-            flog.debug(paste("::inferCNV::heatmap.cnv colorkey z range: ", paste(z, collapse=","), sep=""))
-            flog.debug(paste("::inferCNV::heatmap.cnv colorkey breaks range: ", paste(breaks, collapse=","), sep=""))
-            flog.debug(paste("::inferCNV::heatmap.cnv colorkey colors range: ", paste(colors, collapse=","), sep=""))
+            flog.debug(paste("::SPACEmapX::heatmap.cnv colorkey z range: ", paste(z, collapse=","), sep=""))
+            flog.debug(paste("::SPACEmapX::heatmap.cnv colorkey breaks range: ", paste(breaks, collapse=","), sep=""))
+            flog.debug(paste("::SPACEmapX::heatmap.cnv colorkey colors range: ", paste(colors, collapse=","), sep=""))
   
             image(z=matrix(z, ncol=1),
                   col=colors,
@@ -2688,7 +2688,7 @@ gdist <-
         )
 
     if(method %in% COMMON_METHODS) {
-        d <- parallelDist(x=x, method=method, diag=diag, upper=upper, p=MoreArgs$p, threads=infercnv.env$GLOBAL_NUM_THREADS)
+        d <- parallelDist(x=x, method=method, diag=diag, upper=upper, p=MoreArgs$p, threads=SPACEmapX.env$GLOBAL_NUM_THREADS)
     } else if (method %in% c("correlation","correlation.of.observations","correlation.of.variables")) {
     ##d <- .call.FUN(FUN,x,MoreArgs)
     d <- FUN(x, method=MoreArgs$method, use=MoreArgs$use)
@@ -2763,28 +2763,28 @@ get.sep <-
 
 
 #####################################################
-## Custom infercnv functions related to visualization
+## Custom SPACEmapX functions related to visualization
 
 
-depress_low_signal_midpt_ratio <- function(infercnv_obj, expr_mean, midpt_ratio=0.2, slope=20) {
+depress_low_signal_midpt_ratio <- function(SPACEmapX_obj, expr_mean, midpt_ratio=0.2, slope=20) {
 
-    expr_bounds = get_average_bounds(infercnv_obj)
+    expr_bounds = get_average_bounds(SPACEmapX_obj)
 
     delta_mean = max(expr_mean - expr_bounds[1],  expr_bounds[2] - expr_mean)
     delta_midpt = delta_mean * midpt_ratio
 
-    infercnv_obj <- depress_log_signal_midpt_val(infercnv_obj, expr_mean, delta_midpt, slope)
+    SPACEmapX_obj <- depress_log_signal_midpt_val(SPACEmapX_obj, expr_mean, delta_midpt, slope)
     
-    return(infercnv_obj)
+    return(SPACEmapX_obj)
     
 }
 
-depress_log_signal_midpt_val <- function(infercnv_obj, expr_mean, delta_midpt, slope=20) {
+depress_log_signal_midpt_val <- function(SPACEmapX_obj, expr_mean, delta_midpt, slope=20) {
     
     
-    infercnv_obj@expr.data <- .apply_logistic_val_adj(infercnv_obj@expr.data, expr_mean, delta_midpt, slope)
+    SPACEmapX_obj@expr.data <- .apply_logistic_val_adj(SPACEmapX_obj@expr.data, expr_mean, delta_midpt, slope)
 
-    return(infercnv_obj)
+    return(SPACEmapX_obj)
 }
 
 
